@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Tocco di Paradisso Spa Fairview | Massage & Home Service Quezon City</title>
+
+    <meta name="description" content="Relax and rejuvenate at Tocco di Paradisso Spa in Fairview, Quezon City. Offering body massage, ventosa, foot spa, and home service. Visit us or call 0931 025 2629." />
+    <meta name="keywords" content="massage fairview, spa quezon city, tocco di paradisso, home service massage, ventosa, body scrub, regalado ave, foot spa, combi massage" />
+    <meta name="author" content="Tocco di Paradisso Spa" />
+    <meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/869/869636.png" />
+
+    <style>
+      body {
+        margin: 0;
+        font-family: "Roboto", sans-serif;
+        background-color: #f9f8f3;
+        color: #333;
+      }
+
+      header {
+        background-color: #f4f3eb;
+        text-align: center;
+        padding: 2em 1em 1.5em;
+        border-bottom: 3px solid #a7b59f;
+      }
+
+      header h1 {
+        color: #3b503d;
+        margin-bottom: 0.2em;
+        font-size: 1.8em;
+      }
+
+      header p {
+        color: #5c665c;
+        margin: 0.3em 0;
+      }
+
+      .phone {
+        font-weight: bold;
+        color: #3b503d;
+        font-size: 1.1em;
+      }
+
+      .button-link {
+        background-color: #3b503d;
+        color: #fff;
+        padding: 0.6em 1.4em;
+        border-radius: 0.5em;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 0.8em;
+        transition: background-color 0.3s;
+      }
+
+      .button-link:hover {
+        background-color: #4f6851;
+      }
+
+      section {
+        padding: 2em 1.5em;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      .menu-section {
+        background-color: #f4f3eb;
+        border-radius: 1em;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        padding: 2em;
+        margin-bottom: 2em;
+      }
+
+      h2 {
+        color: #3b503d;
+        text-align: center;
+        margin-bottom: 1em;
+      }
+
+      .price-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .price-table th, .price-table td {
+        padding: 0.8em 0.5em;
+        vertical-align: top;
+      }
+
+      .price-table th {
+        text-align: left;
+        color: #3b503d;
+      }
+
+      .price {
+        text-align: right;
+        color: #3b503d;
+        font-weight: bold;
+      }
+
+      .category {
+        background-color: #e7ede1;
+        color: #3b503d;
+        padding: 0.6em;
+        border-radius: 0.4em;
+        font-weight: bold;
+        margin-top: 1.5em;
+      }
+
+      footer {
+        text-align: center;
+        background: #3b503d;
+        color: #fff;
+        padding: 1.5em;
+        font-size: 0.9em;
+      }
+
+      .map-container {
+        height: 70vh;
+        margin-top: 2em;
+        border-radius: 1em;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      }
+
+      .contact-info {
+        text-align: center;
+        margin-top: 1.5em;
+        line-height: 1.8;
+      }
+
+      .contact-info strong {
+        color: #3b503d;
+      }
+
+      .emoji {
+        font-size: 1.2em;
+      }
+    </style>
+
+    <script>
+      const CONFIGURATION = {
+        "locations": [
+          {
+            "title":"Tocco di Paradisso Spa - Fairview",
+            "address1":"2nd Floor, LT Building, 20 Regalado Ave, West Fairview",
+            "address2":"Quezon City, Metro Manila, Philippines",
+            "coords":{"lat":14.700578,"lng":121.067909},
+            "placeId":"ChIJgUFmZSuxlzMRkSNYmAuAWOg"
+          }
+        ],
+        "mapOptions":{
+          "center":{"lat":14.700578,"lng":121.067909},
+          "fullscreenControl":true,
+          "mapTypeControl":false,
+          "streetViewControl":true,
+          "zoom":15,
+          "zoomControl":true
+        },
+        "mapsApiKey":"AIzaSyCGm4FhthsAuKs4Qo91qO4mMrTwP44Xptg"
+      };
+    </script>
+    <script type="module">
+      document.addEventListener('DOMContentLoaded', async () => {
+        await customElements.whenDefined('gmpx-store-locator');
+        const locator = document.querySelector('gmpx-store-locator');
+        locator.configureFromQuickBuilder(CONFIGURATION);
+      });
+    </script>
+  </head>
+
+  <body>
+    <header>
+      <h1>Tocco di Paradisso Spa - Fairview</h1>
+      <p>Massage • Wellness • Home Service in Quezon City</p>
+      <p class="phone">📞 0931-025-2629</p>
+      <a href="https://www.facebook.com/ToccoDiParadissoSpaOfficial" class="button-link" target="_blank">Book via Facebook</a>
+    </header>
+
+    <section class="menu-section">
+      <h2>Massage Services & Pricelist</h2>
+
+      <div class="category">Massage Packages</div>
+      <table class="price-table">
+        <tr><th>Swedish + Hot Stone (1.5 hrs)</th><td class="price">₱550</td></tr>
+        <tr><th>Swedish + Body Scrub (2 hrs)</th><td class="price">₱1200</td></tr>
+        <tr><th>Combi + Hot Stone (1.5 hrs)</th><td class="price">₱650</td></tr>
+      </table>
+
+      <div class="category">Massage Services</div>
+      <table class="price-table">
+        <tr><th>Swedish Massage (1 hr)</th><td class="price">₱400</td></tr>
+        <tr><th>Combi Massage (1 hr)</th><td class="price">₱500</td></tr>
+        <tr><th>Signature Massage (90 mins)</th><td class="price">₱900</td></tr>
+        <tr><th>Body Scrub</th><td class="price">₱1000</td></tr>
+      </table>
+
+      <div class="category">Other Services</div>
+      <table class="price-table">
+        <tr><th>Head Massage (1 hr)</th><td class="price">₱400</td></tr>
+        <tr><th>Back Massage (1 hr)</th><td class="price">₱400</td></tr>
+        <tr><th>Foot Massage (1 hr)</th><td class="price">₱400</td></tr>
+        <tr><th>Foot Reflex (1 hr)</th><td class="price">₱500</td></tr>
+      </table>
+
+      <div class="category">Add-On Services</div>
+      <table class="price-table">
+        <tr><th>Aroma</th><td class="price">₱150</td></tr>
+        <tr><th>Herbal Ball</th><td class="price">₱150</td></tr>
+        <tr><th>Hot Stone</th><td class="price">₱200</td></tr>
+        <tr><th>Basic Foot Spa</th><td class="price">₱350</td></tr>
+        <tr><th>Basic Foot Spa w/ Callus Remover</th><td class="price">₱399</td></tr>
+      </table>
+
+      <div class="contact-info">
+        <p class="emoji">📍 2nd Floor, LT Building, 20 Regalado Ave, West Fairview, Quezon City</p>
+        <p class="emoji">🕑 Open Monday to Sunday — 2:00 PM to 2:00 AM (Last Call: 12:00 MN)</p>
+        <p class="emoji">📞 <strong>0931-025-2629</strong></p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Find Us on Google Maps</h2>
+      <div class="map-container">
+        <script type="module" src="https://ajax.googleapis.com/ajax/libs/@googlemaps/extended-component-library/0.6.11/index.min.js"></script>
+        <gmpx-api-loader key="AIzaSyCGm4FhthsAuKs4Qo91qO4mMrTwP44Xptg"></gmpx-api-loader>
+        <gmpx-store-locator map-id="DEMO_MAP_ID"></gmpx-store-locator>
+      </div>
+    </section>
+
+    <footer>
+      © 2025 Tocco di Paradisso Spa - Fairview | All Rights Reserved
+    </footer>
+  </body>
+</html>
