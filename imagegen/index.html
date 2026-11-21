@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Image Hub</title>
+<style>
+  :root {
+    --bg: #f6f6f4; --card: #ffffff; --text: #1d1d1f; --muted: #6b6b70;
+    --line: #e2e2e0; --accent: #3b5bdb; --accent-text: #fff; --ok: #2b8a3e; --err: #c92a2a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141416; --card: #1e1e22; --text: #ececf0; --muted: #9a9aa3;
+      --line: #2e2e34; --accent: #748ffc; --accent-text: #0b0b10; --ok: #69db7c; --err: #ff8787;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
+  h1 { font-size: 1.4rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 16px; font-size: .9rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+  textarea, input, select { width: 100%; font: inherit; color: var(--text); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  textarea { min-height: 90px; resize: vertical; }
+  label { display: block; font-size: .8rem; color: var(--muted); margin: 10px 0 4px; }
+  .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+  button { font: inherit; border: 0; border-radius: 10px; padding: 10px 16px; cursor: pointer;
+    background: var(--accent); color: var(--accent-text); font-weight: 600; }
+  button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); font-weight: 500; }
+  button:disabled { opacity: .5; cursor: default; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .checks { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; }
+  .checks label { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--text); font-size: .9rem; }
+  .checks input { width: auto; }
+  h2 { font-size: 1rem; margin: 0 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .result { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--bg); }
+  .result .head { display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    padding: 8px 10px; font-size: .85rem; border-bottom: 1px solid var(--line); }
+  .result .frame { aspect-ratio: 1 / 1; display: grid; place-items: center; color: var(--muted); font-size: .85rem; text-align: center; padding: 0; }
+  .result img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .status.ok { color: var(--ok); } .status.err { color: var(--err); }
+  .links { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+  .links button { width: 100%; }
+  details summary { cursor: pointer; font-weight: 600; }
+  .hint { color: var(--muted); font-size: .82rem; margin: 8px 0 0; }
+  code { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 1px 5px; font-size: .82rem; word-break: break-all; }
+  .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--text); color: var(--bg);
+    padding: 8px 14px; border-radius: 999px; font-size: .85rem; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .spin { width: 22px; height: 22px; border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: s 1s linear infinite; margin: 0 auto 6px; }
+  @keyframes s { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Image Hub</h1>
+  <p class="sub">프롬프트 하나로 무료 생성기·로컬 ComfyUI 결과를 비교하고, Gemini·ChatGPT·Meta AI는 프롬프트를 복사해 바로 엽니다.</p>
+
+  <section class="card">
+    <label for="prompt">프롬프트</label>
+    <textarea id="prompt" placeholder="예: a cozy spa room with candles, soft morning light, photorealistic"></textarea>
+    <label for="neg">네거티브 프롬프트 (ComfyUI용)</label>
+    <input id="neg" value="blurry, lowres, watermark, text" />
+    <div class="row">
+      <div><label for="size">크기</label>
+        <select id="size">
+          <option value="1024x1024">1024×1024</option>
+          <option value="832x1216">832×1216 (세로)</option>
+          <option value="1216x832">1216×832 (가로)</option>
+          <option value="768x768">768×768</option>
+        </select></div>
+      <div><label for="seed">시드 (비우면 랜덤)</label><input id="seed" inputmode="numeric" placeholder="random" /></div>
+    </div>
+    <div class="checks" id="engines">
+      <label><input type="checkbox" value="pollinations-flux" checked /> Pollinations · flux</label>
+      <label><input type="checkbox" value="pollinations-turbo" checked /> Pollinations · turbo</label>
+      <label><input type="checkbox" value="comfy" /> 내 PC · ComfyUI</label>
+    </div>
+    <div class="actions">
+      <button id="go">생성</button>
+      <button class="ghost" id="clear">결과 지우기</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>웹 서비스로 열기 (프롬프트 자동 복사)</h2>
+    <div class="links">
+      <button class="ghost" data-open="gemini">Gemini</button>
+      <button class="ghost" data-open="chatgpt">ChatGPT</button>
+      <button class="ghost" data-open="meta">Meta AI</button>
+      <button class="ghost" data-open="bing">Bing Image Creator</button>
+    </div>
+    <p class="hint">ChatGPT·Bing은 프롬프트가 미리 입력된 상태로 열립니다. Gemini·Meta AI는 열린 창에 붙여넣기만 하세요.</p>
+  </section>
+
+  <section class="card">
+    <h2>결과</h2>
+    <div class="grid" id="results"><p class="hint" id="empty">아직 결과가 없습니다.</p></div>
+  </section>
+
+  <section class="card">
+    <details id="comfyBox">
+      <summary>ComfyUI 연결 설정</summary>
+      <label for="comfyUrl">ComfyUI 주소</label>
+      <input id="comfyUrl" value="http://127.0.0.1:8188" />
+      <div class="row">
+        <div><label for="ckpt">체크포인트</label><select id="ckpt"><option value="">(연결 후 불러오기)</option></select></div>
+        <div><label for="steps">스텝</label><input id="steps" type="number" value="25" min="1" max="100" /></div>
+        <div><label for="cfg">CFG</label><input id="cfg" type="number" value="6" step="0.5" min="1" max="20" /></div>
+        <div><label for="sampler">샘플러</label>
+          <select id="sampler">
+            <option value="euler|normal">euler / normal</option>
+            <option value="dpmpp_2m|karras" selected>dpmpp_2m / karras</option>
+            <option value="dpmpp_2m_sde|karras">dpmpp_2m_sde / karras</option>
+            <option value="euler_ancestral|normal">euler_a / normal</option>
+          </select></div>
+      </div>
+      <div class="actions"><button class="ghost" id="connect">연결 테스트 · 모델 불러오기</button></div>
+      <p class="hint" id="comfyStatus"></p>
+      <p class="hint">
+        PC에서 ComfyUI를 아래 옵션으로 실행해야 이 페이지에서 접속할 수 있습니다:<br />
+        <code>python main.py --enable-cors-header "*" --cuda-device 0</code><br />
+        (<code>--cuda-device</code> 번호는 RX 9070이 잡힌 번호로.) 같은 PC의 브라우저에서 열면 <code>127.0.0.1</code> 그대로 쓰면 됩니다.
+        휴대폰 등 밖에서 쓰려면 Tailscale 같은 VPN으로 PC 주소를 넣고 <code>--listen</code> 옵션을 추가하세요.
+        현재 체크포인트 로더 기반 txt2img(SD1.5·SDXL·올인원 체크포인트)만 지원합니다.
+      </p>
+    </details>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem("imghub:" + k); return v === null ? d : v; } catch { return d; } },
+    set(k, v) { try { localStorage.setItem("imghub:" + k, v); } catch {} },
+  };
+
+  // restore settings
+  for (const id of ["prompt", "neg", "size", "comfyUrl", "steps", "cfg", "sampler"]) {
+    const v = store.get(id, null);
+    if (v !== null) $(id).value = v;
+    $(id).addEventListener("change", () => store.set(id, $(id).value));
+  }
+  $("prompt").addEventListener("input", () => store.set("prompt", $("prompt").value));
+  try {
+    const saved = JSON.parse(store.get("engines", "null"));
+    if (Array.isArray(saved)) document.querySelectorAll("#engines input").forEach(c => c.checked = saved.includes(c.value));
+  } catch {}
+  $("engines").addEventListener("change", () =>
+    store.set("engines", JSON.stringify([...document.querySelectorAll("#engines input:checked")].map(c => c.value))));
+  const savedCkpt = store.get("ckpt", "");
+  if (savedCkpt) $("ckpt").innerHTML = `<option>${escapeHtml(savedCkpt)}</option>`;
+  $("ckpt").addEventListener("change", () => store.set("ckpt", $("ckpt").value));
+
+  function escapeHtml(s) { return s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+  function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 1800); }
+  async function copy(text) {
+    try { await navigator.clipboard.writeText(text); return true; }
+    catch {
+      const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select();
+      let ok = false; try { ok = document.execCommand("copy"); } catch {} ta.remove(); return ok;
+    }
+  }
+  const getPrompt = () => $("prompt").value.trim();
+  const getSize = () => $("size").value.split("x").map(Number);
+  const getSeed = () => { const s = parseInt($("seed").value, 10); return Number.isFinite(s) ? s : Math.floor(Math.random() * 2 ** 31); };
+
+  // ---- web service shortcuts ----
+  const services = {
+    gemini: () => "https://gemini.google.com/app",
+    chatgpt: (p) => "https://chatgpt.com/?q=" + encodeURIComponent("다음 프롬프트로 이미지를 생성해줘: " + p),
+    meta: () => "https://www.meta.ai/",
+    bing: (p) => "https://www.bing.com/images/create?q=" + encodeURIComponent(p),
+  };
+  document.querySelectorAll("[data-open]").forEach(btn => btn.addEventListener("click", async () => {
+    const p = getPrompt();
+    if (!p) return toast("프롬프트를 먼저 입력하세요");
+    const url = services[btn.dataset.open](p);
+    window.open(url, "_blank", "noopener");
+    if (await copy(p)) toast("프롬프트 복사됨 · 붙여넣기 하세요");
+  }));
+
+  // ---- results ----
+  function addResult(title) {
+    $("empty")?.remove();
+    const el = document.createElement("div");
+    el.className = "result";
+    el.innerHTML = `<div class="head"><strong>${escapeHtml(title)}</strong><span class="status">생성 중…</span></div>
+      <div class="frame"><div><div class="spin"></div>대기 중</div></div>`;
+    $("results").prepend(el);
+    const status = el.querySelector(".status"), frame = el.querySelector(".frame");
+    return {
+      ok(src, note) {
+        status.textContent = note || "완료"; status.className = "status ok";
+        const a = document.createElement("a"); a.href = src; a.target = "_blank"; a.rel = "noopener";
+        const img = new Image(); img.src = src; img.alt = title; a.appendChild(img);
+        frame.replaceChildren(a);
+      },
+      fail(msg) { status.textContent = "실패"; status.className = "status err"; frame.textContent = msg; },
+      progress(msg) { const d = frame.firstElementChild; if (d && d.lastChild) d.lastChild.textContent = msg; },
+    };
+  }
+
+  function runPollinations(model, prompt, w, h, seed) {
+    const card = addResult(`Pollinations · ${model}`);
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&seed=${seed}&model=${model}&nologo=true`;
+    const img = new Image();
+    const timer = setTimeout(() => { img.src = ""; card.fail("시간 초과 (서버 혼잡일 수 있어요)"); }, 120000);
+    img.onload = () => { clearTimeout(timer); card.ok(url, `seed ${seed}`); };
+    img.onerror = () => { clearTimeout(timer); card.fail("생성 실패 · 잠시 후 다시 시도하거나 요청 한도에 걸렸을 수 있어요"); };
+    img.src = url;
+  }
+
+  // ---- ComfyUI ----
+  const comfyBase = () => $("comfyUrl").value.trim().replace(/\/+$/, "");
+  async function comfyConnect() {
+    const s = $("comfyStatus");
+    s.textContent = "연결 중…"; s.className = "hint";
+    try {
+      const r = await fetch(comfyBase() + "/object_info/CheckpointLoaderSimple");
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const j = await r.json();
+      const list = j.CheckpointLoaderSimple.input.required.ckpt_name[0];
+      const cur = $("ckpt").value || store.get("ckpt", "");
+      $("ckpt").innerHTML = list.map(n => `<option${n === cur ? " selected" : ""}>${escapeHtml(n)}</option>`).join("");
+      store.set("ckpt", $("ckpt").value);
+      s.textContent = `연결됨 · 체크포인트 ${list.length}개`; s.className = "hint status ok";
+      return true;
+    } catch (e) {
+      s.textContent = `연결 실패 (${e.message}). ComfyUI 실행 여부, 주소, --enable-cors-header 옵션을 확인하세요.`;
+      s.className = "hint status err";
+      return false;
+    }
+  }
+  $("connect").addEventListener("click", comfyConnect);
+
+  async function runComfy(prompt, w, h, seed) {
+    const card = addResult("내 PC · ComfyUI");
+    const ckpt = $("ckpt").value;
+    if (!ckpt) { $("comfyBox").open = true; return card.fail("아래 'ComfyUI 연결 설정'에서 먼저 연결하고 체크포인트를 고르세요."); }
+    const [sampler, scheduler] = $("sampler").value.split("|");
+    const wf = {
+      "4": { class_type: "CheckpointLoaderSimple", inputs: { ckpt_name: ckpt } },
+      "5": { class_type: "EmptyLatentImage", inputs: { width: w, height: h, batch_size: 1 } },
+      "6": { class_type: "CLIPTextEncode", inputs: { text: prompt, clip: ["4", 1] } },
+      "7": { class_type: "CLIPTextEncode", inputs: { text: $("neg").value, clip: ["4", 1] } },
+      "3": { class_type: "KSampler", inputs: { seed, steps: +$("steps").value || 25, cfg: +$("cfg").value || 6,
+        sampler_name: sampler, scheduler, denoise: 1, model: ["4", 0], positive: ["6", 0], negative: ["7", 0], latent_image: ["5", 0] } },
+      "8": { class_type: "VAEDecode", inputs: { samples: ["3", 0], vae: ["4", 2] } },
+      "9": { class_type: "SaveImage", inputs: { filename_prefix: "imghub", images: ["8", 0] } },
+    };
+    try {
+      const r = await fetch(comfyBase() + "/prompt", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: wf, client_id: "imghub" }) });
+      const j = await r.json();
+      if (!r.ok || !j.prompt_id) throw new Error(j.error?.message || JSON.stringify(j.node_errors || j).slice(0, 200));
+      const id = j.prompt_id, t0 = Date.now();
+      while (Date.now() - t0 < 600000) {
+        await new Promise(res => setTimeout(res, 1500));
+        card.progress(`생성 중… ${Math.round((Date.now() - t0) / 1000)}초`);
+        const h = await (await fetch(`${comfyBase()}/history/${id}`)).json();
+        const entry = h[id];
+        if (!entry) continue;
+        if (entry.status?.status_str === "error") throw new Error("ComfyUI 실행 오류 (콘솔 확인)");
+        const imgs = entry.outputs?.["9"]?.images;
+        if (imgs?.length) {
+          const im = imgs[0];
+          const src = `${comfyBase()}/view?filename=${encodeURIComponent(im.filename)}&subfolder=${encodeURIComponent(im.subfolder)}&type=${im.type}`;
+          return card.ok(src, `${Math.round((Date.now() - t0) / 1000)}초 · seed ${seed}`);
+        }
+      }
+      throw new Error("시간 초과");
+    } catch (e) {
+      card.fail(`실패: ${e.message === "Failed to fetch" ? "PC의 ComfyUI에 접속할 수 없습니다" : e.message}`);
+    }
+  }
+
+  $("go").addEventListener("click", () => {
+    const p = getPrompt();
+    if (!p) return toast("프롬프트를 먼저 입력하세요");
+    const engines = [...document.querySelectorAll("#engines input:checked")].map(c => c.value);
+    if (!engines.length) return toast("생성기를 하나 이상 선택하세요");
+    const [w, h] = getSize(), seed = getSeed();
+    for (const e of engines) {
+      if (e.startsWith("pollinations-")) runPollinations(e.split("-")[1], p, w, h, seed);
+      else if (e === "comfy") runComfy(p, w, h, seed);
+    }
+  });
+  $("clear").addEventListener("click", () => { $("results").innerHTML = '<p class="hint" id="empty">아직 결과가 없습니다.</p>'; });
+})();
+</script>
+</body>
+</html>
