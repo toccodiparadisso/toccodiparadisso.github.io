@@ -78,7 +78,7 @@
     </div>
     <div class="checks" id="engines">
       <label><input type="checkbox" value="pollinations-flux" checked /> Pollinations · flux</label>
-      <label><input type="checkbox" value="pollinations-turbo" checked /> Pollinations · turbo</label>
+      <label><input type="checkbox" value="pollinations-turbo" /> Pollinations · turbo</label>
       <label><input type="checkbox" value="comfy" /> 내 PC · ComfyUI</label>
     </div>
     <div class="actions">
@@ -208,14 +208,49 @@
     };
   }
 
+  // Pollinations anonymous tier: one request at a time per IP, with a gap between requests.
+  // Run jobs one by one and back off on 429.
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  let pollQueue = Promise.resolve();
   function runPollinations(model, prompt, w, h, seed) {
     const card = addResult(`Pollinations · ${model}`);
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&seed=${seed}&model=${model}&nologo=true`;
-    const img = new Image();
-    const timer = setTimeout(() => { img.src = ""; card.fail("시간 초과 (서버 혼잡일 수 있어요)"); }, 120000);
-    img.onload = () => { clearTimeout(timer); card.ok(url, `seed ${seed}`); };
-    img.onerror = () => { clearTimeout(timer); card.fail("생성 실패 · 잠시 후 다시 시도하거나 요청 한도에 걸렸을 수 있어요"); };
-    img.src = url;
+    card.progress("순서 대기 중…");
+    pollQueue = pollQueue.then(() => pollinationsJob(card, model, prompt, w, h, seed)).then(() => sleep(6000));
+  }
+  async function pollinationsJob(card, model, prompt, w, h, seed) {
+    const ref = encodeURIComponent(location.hostname || "imagehub");
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&seed=${seed}&model=${model}&nologo=true&referrer=${ref}`;
+    for (let attempt = 1; attempt <= 4; attempt++) {
+      card.progress(attempt === 1 ? "생성 중…" : `요청 한도 · 재시도 ${attempt}/4`);
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 150000);
+        const r = await fetch(url, { signal: ctrl.signal });
+        clearTimeout(t);
+        if (r.status === 429) {
+          const wait = (parseInt(r.headers.get("retry-after"), 10) || 15 * attempt) * 1000;
+          for (let s = Math.ceil(wait / 1000); s > 0; s--) { card.progress(`요청 한도 · ${s}초 후 재시도`); await sleep(1000); }
+          continue;
+        }
+        if (!r.ok) {
+          const msg = (await r.text().catch(() => "")).slice(0, 160);
+          return card.fail(`HTTP ${r.status}${msg ? " · " + msg : ""}`);
+        }
+        const blob = await r.blob();
+        if (!blob.type.startsWith("image/")) return card.fail("이미지가 아닌 응답: " + (await blob.text()).slice(0, 160));
+        return card.ok(URL.createObjectURL(blob), `seed ${seed}`);
+      } catch (e) {
+        if (e.name === "AbortError") return card.fail("시간 초과 (서버 혼잡)");
+        // fetch blocked (e.g. CORS): fall back to a plain <img> load
+        return new Promise(res => {
+          const img = new Image();
+          img.onload = () => { card.ok(url, `seed ${seed}`); res(); };
+          img.onerror = () => { card.fail("생성 실패 · 잠시 후 다시 시도하세요"); res(); };
+          img.src = url;
+        });
+      }
+    }
+    card.fail("요청 한도가 계속 걸립니다 · 1~2분 뒤 다시 시도하세요");
   }
 
   // ---- ComfyUI ----
